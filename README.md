@@ -29,7 +29,7 @@ print buffers.getvalue()
 
 ```
 
-##Api
+##API
 
 ###locatedb.find or instance.find(): [name, limit=None, ignore_case=False, regex=None]
    used to find the particular files in system.
@@ -49,4 +49,5 @@ print buffers.getvalue()
    
 ##License:
   <b>MIT</b>
-  &copy 2015 plasmashadow  plasmashadowx@gmail.com
+  &copy 2015 plasmashadow  
+  plasmashadowx@gmail.com
