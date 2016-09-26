@@ -81,7 +81,7 @@ def _docommand(args):
             raise PyLocatedException(err)
         return out
     except Exception as e:
-        print traceback.format_exc(e)
+        print(traceback.format_exc(e))
         raise PyLocatedException(str(e))
 
 
