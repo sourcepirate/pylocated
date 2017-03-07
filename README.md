@@ -49,5 +49,5 @@ print buffers.getvalue()
    
 ##License:
   <b>MIT</b>
-  &copy; 2015 plasmashadow  
+  &copy; 2015 plasmashadow aka sourcepirate
   plasmashadowx@gmail.com
