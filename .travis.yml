@@ -8,3 +8,4 @@ install:
 - pip install six
 
 script: python setup.py test
+sudo: required
