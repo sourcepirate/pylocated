@@ -18,16 +18,15 @@ class TestLocate(unittest.TestCase):
         self.assertIsNotNone(version)
 
     def test_find(self):
-        buffer = locatedb.find('__init__.py', ignore_case=False, limit=2)
+        buffer = locatedb.find('fstab', ignore_case=False, limit=2)
         str_list = buffer.getvalue().split("\n")
         log.info(str_list)
         self.assertEqual(len(str_list), 2)
 
     def test_find_regex(self):
-        buffer = locatedb.find('__init__.py', ignore_case=False, limit=2, regex='/home/plasmashadow/.PyCharm40/system/python_stubs/-1235803962/Crypto/Cipher/*')
+        buffer = locatedb.find('py', ignore_case=False, regex='.*\.py')
         str_list = buffer.getvalue().split("\n")
-        log.info(str_list)
-        self.assertEqual(len(str_list), 1)
+        self.assertIsNotNone(str_list)
 
     def test_statistics(self):
         file_obj = locatedb.statistics()
@@ -39,14 +38,14 @@ class TestLocate(unittest.TestCase):
 
     def test_instance_find(self):
         locate_obj = locatedb()
-        buffer = locate_obj.find('__init__.py', ignore_case=False, limit=2)
+        buffer = locate_obj.find('fstab', ignore_case=False, limit=2)
         str_list = buffer.getvalue().split("\n")
         log.info(str_list)
         self.assertEqual(len(str_list), 2)
 
     def test_instance_count(self):
         locate_obj = locatedb()
-        buffer = locate_obj.count('__init__.py')
+        buffer = locate_obj.count('fstab')
         log.info(buffer)
         self.assertIsNotNone(buffer)
 

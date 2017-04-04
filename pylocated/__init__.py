@@ -146,9 +146,11 @@ class locatedb(object):
             args.extend(['-l', str(limit)])
         process_pipe = _docommand(args)
         process_pipe = process_pipe.split("\n")
-
         if regex:
-            compiled = re.compile(regex)
+            try:
+                compiled = re.compile(regex)
+            except Exception as e:
+                raise PyLocatedException("Invalid regular expression")
             process_pipe = filter(lambda x: compiled.match(x), process_pipe)
 
         out_put = filter(lambda x: x is not '', process_pipe)
@@ -171,7 +173,10 @@ class locatedb(object):
         process_pipe = process_pipe.split("\n")
 
         if regex:
-            compiled = re.compile(regex)
+            try:
+                compiled = re.compile(regex)
+            except Exception as e:
+                raise PyLocatedException("Invalid regular expression")
             process_pipe = filter(lambda x: compiled.match(x), process_pipe)
 
         out_put = filter(lambda x: x is not '', process_pipe)
