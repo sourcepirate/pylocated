@@ -4,6 +4,7 @@ python:
 - '2.7'
 
 install:
+- apt-get install locate
 - pip install six
 
 script: python setup.py test
