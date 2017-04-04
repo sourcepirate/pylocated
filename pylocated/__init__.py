@@ -1,4 +1,4 @@
-from subprocess import Popen, check_output, call
+from subprocess import Popen
 from subprocess import PIPE as pipe
 import re, traceback, os, getpass, six, sys
 
