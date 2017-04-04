@@ -1,12 +1,18 @@
-
 from subprocess import Popen, check_output, call
 from subprocess import PIPE as pipe
-import re, traceback
+import re, traceback, os, getpass, six, sys
 
-try:
+# import StringIO according to Python version
+
+
+if six.PY2:
     from cStringIO import StringIO
-except:
-    from StringIO import StringIO
+else:
+    if sys.version_info.minor <= 3:
+        from StringIO import StringIO
+    else:
+        from io import StringIO
+
 
 class PyLocatedException(Exception):
     """
@@ -17,14 +23,13 @@ class PyLocatedException(Exception):
         self.message = message
 
     def __str__(self):
-        return '<%s>%s'%(self.__class__.__name__, self.message)
+        return '<%s>%s' % (self.__class__.__name__, self.message)
 
     def __repr__(self):
         return str(self)
 
 
 class BiContextual(object):
-
     """
        Used to get the values of class from meta object type and
        object name from instance method
@@ -34,13 +39,11 @@ class BiContextual(object):
         self.name = name
 
     def __get__(self, instance, type=None):
-
         if instance is None:
-            return getattr(type, '_class_'+self.name)
-        return getattr(instance, '_instance_'+self.name)
+            return getattr(type, '_class_' + self.name)
+        return getattr(instance, '_instance_' + self.name)
 
 class FileSystem(object):
-
     def __init__(self, statics_string):
         self.string = statics_string
         self.parsed = statics_string.split("\n\t")
@@ -73,6 +76,7 @@ class FileSystem(object):
     def db_path(self):
         return self.parsed[0].split()[1]
 
+
 def _docommand(args):
     try:
         stream = Popen(args, stdout=pipe, stderr=pipe)
@@ -85,27 +89,35 @@ def _docommand(args):
         raise PyLocatedException(str(e))
 
 
-def _updatedb(cls):
-    """
-      Used to update the located db
-      Equivalent to `updatedb`
-    """
-    try:
-        stream = Popen(['updateddb'], stdout=pipe, stderr=pipe)
-        out, err = stream.communicate()
-        if err:
-            raise PyLocatedException(err)
-        return out
-    except Exception as e:
-        raise PyLocatedException(str(e))
-
-
 class locatedb(object):
-
-    updatedb = classmethod(_updatedb)
 
     def __init__(self, db_path=None):
         self.db_path = db_path
+        # Invoke updatedb if a custom db_path is given and which is not exist
+        if db_path is not None and os.path.isfile(db_path) is False:
+            self.__class__.updatedb(db_path=self.db_path)
+
+    @classmethod
+    def updatedb(cls, db_path=None):
+        """
+          Used to update the located db
+          Equivalent to `updatedb`
+        """
+        if getpass.getuser() != 'root':
+            raise PyLocatedException("Root user privilege is required to perform updatedb")
+
+        args = ['updatedb']
+        if db_path:
+            args.extend(['-o', db_path])
+
+        try:
+            stream = Popen(args, stdout=pipe, stderr=pipe)
+            out, err = stream.communicate()
+            if err:
+                raise PyLocatedException(err)
+            return out
+        except Exception as e:
+            raise PyLocatedException(str(e))
 
     @classmethod
     def _class_count(cls, name, ignore_case=False):
@@ -119,7 +131,7 @@ class locatedb(object):
         if ignore_case:
             args.extend(['-i'])
         if self.db_path:
-            args.extend([ '-d', self.db_path])
+            args.extend(['-d', self.db_path])
         return _docommand(args)
 
     count = BiContextual("count")
@@ -191,7 +203,5 @@ class locatedb(object):
         version = out.split("\n")[0].split()[1]
         return version
 
-
-
-
-
+# Expose updatedb function
+updatedb = locatedb.updatedb

@@ -1,9 +1,10 @@
-import unittest
-
-from pylocated import locatedb
+import unittest, os, shutil
 import logging
-logging.basicConfig(level=logging.INFO)
+import getpass
 
+from pylocated import locatedb, PyLocatedException
+
+logging.basicConfig(level=logging.INFO)
 
 log = logging.getLogger(__name__)
 
@@ -48,3 +49,31 @@ class TestLocate(unittest.TestCase):
         buffer = locate_obj.count('__init__.py')
         log.info(buffer)
         self.assertIsNotNone(buffer)
+
+class TestLocateWithKwArgs(unittest.TestCase):
+
+    def __init__(self, *args, **kwargs):
+        super(TestLocateWithKwArgs, self).__init__(*args, **kwargs)
+        self.test_file = '/tmp/db123.db'
+
+    def setUp(self):
+        if os.path.isfile(self.test_file):
+            os.unlink(self.test_file)
+        elif os.path.isdir(self.test_file):
+            shutil.rmtree(self.test_file)
+        else:
+            pass
+
+    def tearDown(self):
+        if os.path.isfile(self.test_file):
+            os.unlink(self.test_file)
+
+    def create_obj(self):
+        locate_obj = locatedb(db_path=self.test_file)
+
+    def test_instance_with_dbpath(self):
+        if getpass.getuser() == 'root':
+            self.create_obj()
+            self.assertEqual(os.path.isfile(self.test_file), True, "instance triggered updatedb")
+        else:
+            self.assertRaises(PyLocatedException, self.create_obj)
