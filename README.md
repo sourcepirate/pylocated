@@ -23,7 +23,7 @@ print files
 
 #if you want to setup you own path to locatedb
 
-locate_db = locatedb(db_path='/var/bin/hello')
+locate_db = locatedb(db_path='/var/lib/app.db')
 buffers = locate_db.find("sample.py", limit=20, ignore_case=False, regex=None)
 print buffers.getvalue()
 

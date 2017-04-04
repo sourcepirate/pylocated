@@ -21,5 +21,6 @@ setup(
         'Programming Language :: Python',
         'License :: OSI Approved :: GNU General Public License (GPL)'
     ],
-    install_requires= requirements
+    install_requires= requirements,
+    test_suite='tests'
 )
