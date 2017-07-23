@@ -23,7 +23,7 @@ else:
 
 def _toint(what):
     if not PY2:
-        long = int
+        long = float
     return long(what)
 
 
