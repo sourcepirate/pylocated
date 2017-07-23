@@ -3,9 +3,7 @@ from setuptools import setup
 def readme():
     return open("README.md", "r").read()
 
-requirements = [
-    'six'
-]
+requirements = []
 
 setup(
     name = 'pylocated',

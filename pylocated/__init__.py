@@ -1,11 +1,13 @@
 from subprocess import Popen
 from subprocess import PIPE as pipe
-import re, traceback, os, getpass, six, sys
+import re, traceback, os, getpass, sys
 
 # import StringIO according to Python version
 # Also, workaround long type
 
-if six.PY2:
+PY2 = sys.version_info[0] == 2
+
+if PY2:
     from cStringIO import StringIO
 else:
     long = int
@@ -85,7 +87,7 @@ def _docommand(args):
         out, err = stream.communicate()
         if err:
             raise PyLocatedException(err)
-        if six.PY3:
+        if not PY2:
             return out.decode()
         return out
     except Exception as e:
