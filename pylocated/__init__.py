@@ -85,6 +85,8 @@ def _docommand(args):
         out, err = stream.communicate()
         if err:
             raise PyLocatedException(err)
+        if six.PY3:
+            return out.decode()
         return out
     except Exception as e:
         print(traceback.format_exc(e))
