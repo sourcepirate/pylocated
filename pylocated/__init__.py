@@ -3,11 +3,13 @@ from subprocess import PIPE as pipe
 import re, traceback, os, getpass, six, sys
 
 # import StringIO according to Python version
-
+# Also, workaround long type
 
 if six.PY2:
     from cStringIO import StringIO
 else:
+    long = int
+
     if sys.version_info.minor <= 3:
         from StringIO import StringIO
     else:
