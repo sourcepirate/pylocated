@@ -8,7 +8,7 @@ requirements = []
 setup(
     name = 'pylocated',
     packages = ['pylocated'],
-    version = '1.0.0',
+    version = '2.0.1',
     long_description= readme(),
     description = "python interface for locate command",
     author='plasmashadow',
