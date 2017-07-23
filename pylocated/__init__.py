@@ -1,6 +1,11 @@
-from subprocess import Popen
+""" Python locate interface library """
+
 from subprocess import PIPE as pipe
-import re, traceback, os, getpass, sys
+from subprocess import Popen
+import getpass
+import os
+import re
+import sys
 
 # import StringIO according to Python version
 # Also, workaround long type
@@ -10,12 +15,16 @@ PY2 = sys.version_info[0] == 2
 if PY2:
     from cStringIO import StringIO
 else:
-    long = int
-
     if sys.version_info.minor <= 3:
         from StringIO import StringIO
     else:
         from io import StringIO
+
+
+def _toint(what):
+    if not PY2:
+        long = int
+    return long(what)
 
 
 class PyLocatedException(Exception):
@@ -23,61 +32,57 @@ class PyLocatedException(Exception):
     Base Exception for all pylocated
     error
     """
-    def __init__(self, message):
-        self.message = message
-
-    def __str__(self):
-        return '<%s>%s' % (self.__class__.__name__, self.message)
-
-    def __repr__(self):
-        return str(self)
+    pass
 
 
 class BiContextual(object):
+    """ Used to get the values of class from meta object type and
+        object name from instance method
     """
-       Used to get the values of class from meta object type and
-       object name from instance method
-    """
+    # pylint: disable=too-few-public-methods
 
     def __init__(self, name):
         self.name = name
 
-    def __get__(self, instance, type=None):
+    def __get__(self, instance, type_=None):
         if instance is None:
-            return getattr(type, '_class_' + self.name)
+            return getattr(type_, '_class_' + self.name)
         return getattr(instance, '_instance_' + self.name)
 
+
 class FileSystem(object):
+    """ Filesystem object, returns statistics """
     def __init__(self, statics_string):
         self.string = statics_string
         self.parsed = statics_string.split("\n\t")
 
     @property
     def directories(self):
+        """ Return directories found """
         dir_str = self.parsed[1].strip().split()
-        _directories = dir_str[0].replace(",", "")
-        return long(_directories)
+        return _toint(dir_str[0].replace(",", ""))
 
     @property
     def files(self):
+        """ Return files found """
         file_str = self.parsed[2].strip().split()
-        _files = file_str[0].replace(",", "")
-        return long(_files)
+        return _toint(file_str[0].replace(",", ""))
 
     @property
     def totalspace(self):
+        """ Return total space """
         total_str = self.parsed[3].strip().split()
-        _total_str = total_str[0].replace(",", "")
-        return long(_total_str)
+        return _toint(total_str[0].replace(",", ""))
 
     @property
     def usedspace(self):
+        """ Return used space """
         total_str = self.parsed[4].strip().split()
-        _total_str = total_str[0].replace(",", "")
-        return long(_total_str)
+        return _toint(total_str[0].replace(",", ""))
 
     @property
     def db_path(self):
+        """ Return current locate db path """
         return self.parsed[0].split()[1]
 
 
@@ -90,12 +95,14 @@ def _docommand(args):
         if not PY2:
             return out.decode()
         return out
-    except Exception as e:
-        print(traceback.format_exc(e))
-        raise PyLocatedException(str(e))
+    except Exception as err:
+        # TODO: Eating up real exceptions type is questionable...
+        raise PyLocatedException(str(err))
 
 
+# pylint: disable=invalid-name
 class locatedb(object):
+    """ Locatedb """
 
     def __init__(self, db_path=None):
         self.db_path = db_path
@@ -110,7 +117,8 @@ class locatedb(object):
           Equivalent to `updatedb`
         """
         if getpass.getuser() != 'root':
-            raise PyLocatedException("Root user privilege is required to perform updatedb")
+            raise PyLocatedException(
+                "Root user privilege is required to perform updatedb")
 
         args = ['updatedb']
         if db_path:
@@ -122,8 +130,21 @@ class locatedb(object):
             if err:
                 raise PyLocatedException(err)
             return out
-        except Exception as e:
-            raise PyLocatedException(str(e))
+        except Exception as err:
+            raise PyLocatedException(str(err))
+
+    @staticmethod
+    def _get_buffer_from_pipe(process_pipe, regex):
+        process_pipe = (a for a in process_pipe.split("\n") if a)
+        if regex:
+            try:
+                compiled = re.compile(regex)
+            except Exception:
+                raise PyLocatedException("Invalid regular expression")
+            process_pipe = (a for a in process_pipe if compiled.match(a) and a)
+        buffer_ = StringIO()
+        buffer_.writelines("\n".join(process_pipe))
+        return buffer_
 
     @classmethod
     def _class_count(cls, name, ignore_case=False):
@@ -148,56 +169,30 @@ class locatedb(object):
         args = ['locate', name]
         if ignore_case:
             args.extend(['-i'])
-        if limit and isinstance(limit, (int, long)):
+        if limit and str(limit).isnumeric():
             args.extend(['-l', str(limit)])
+
         process_pipe = _docommand(args)
-        process_pipe = process_pipe.split("\n")
-        if regex:
-            try:
-                compiled = re.compile(regex)
-            except Exception as e:
-                raise PyLocatedException("Invalid regular expression")
-            process_pipe = filter(lambda x: compiled.match(x), process_pipe)
-
-        out_put = filter(lambda x: x is not '', process_pipe)
-
-        buffer = StringIO()
-        buffer.writelines("\n".join(out_put))
-        return buffer
+        return cls._get_buffer_from_pipe(process_pipe, regex)
 
     def _instance_find(self, name, ignore_case=False, limit=None, regex=None):
-
         args = ['locate', name]
+
         if ignore_case:
             args.extend(['-i'])
-        if limit and isinstance(limit, (int, long)):
+        if limit and str(limit).isnumeric():
             args.extend(['-l', str(limit)])
         if self.db_path:
             args.extend(['-d', self.db_path])
 
         process_pipe = _docommand(args)
-        process_pipe = process_pipe.split("\n")
-
-        if regex:
-            try:
-                compiled = re.compile(regex)
-            except Exception as e:
-                raise PyLocatedException("Invalid regular expression")
-            process_pipe = filter(lambda x: compiled.match(x), process_pipe)
-
-        out_put = filter(lambda x: x is not '', process_pipe)
-
-        buffer = StringIO()
-        buffer.writelines("\n".join(out_put))
-        return buffer
+        return self._get_buffer_from_pipe(process_pipe, regex)
 
     find = BiContextual("find")
 
     @classmethod
     def _class_statistics(cls):
-        args = ['locate', '-S']
-        out = _docommand(args)
-        return FileSystem(out)
+        return FileSystem(_docommand(['locate', '-S']))
 
     def _instance_statistics(self):
         args = ['locate', '-S']
@@ -209,10 +204,10 @@ class locatedb(object):
 
     @classmethod
     def version(cls):
-        args = ['locate', '-V']
-        out = _docommand(args)
-        version = out.split("\n")[0].split()[1]
-        return version
+        """ Return locate version """
+        return _docommand(['locate', '-V']).split("\n")[0].split()[1]
+
 
 # Expose updatedb function
+# pylint: disable=invalid-name
 updatedb = locatedb.updatedb
