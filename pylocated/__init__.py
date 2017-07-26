@@ -108,25 +108,28 @@ class locatedb(object):
     def __init__(self, db_path=None):
         self.db_path = db_path
         # Invoke updatedb if a custom db_path is given and which is not exist
-        if db_path is not None and os.path.isfile(db_path) is False:
+        if db_path is not None and not os.path.exists(db_path):
             self.__class__.updatedb(db_path=self.db_path)
 
     @classmethod
-    def updatedb(cls, db_path=None):
+    def updatedb(cls, db_path=None, path=None):
         """
           Used to update the located db
           Equivalent to `updatedb`
         """
-        if getpass.getuser() != 'root':
-            raise PyLocatedException(
-                "Root user privilege is required to perform updatedb")
-
         args = ['updatedb']
+
+        if getpass.getuser() != 'root':
+            args.extend(['--require-visibility', '0'])
+
         if db_path:
             args.extend(['-o', db_path])
 
+        if path:
+            args.extend(['-U', path])
+
         try:
-            stream = Popen(args, stdout=pipe, stderr=pipe)
+            stream = Popen(args, stdout=pipe, stderr=pipe, env={"LC_ALL": "C"})
             out, err = stream.communicate()
             if err:
                 raise PyLocatedException(err)
