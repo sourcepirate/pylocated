@@ -21,10 +21,15 @@ else:
         from io import StringIO
 
 
-def _toint(what):
+def _isnumeric(what):
     if not PY2:
-        long = float
-    return long(what)
+        return str(what).isnumeric()
+    else:
+        try:
+            float(what)
+            return True
+        except:
+            return False
 
 
 class PyLocatedException(Exception):
