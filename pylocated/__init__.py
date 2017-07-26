@@ -147,11 +147,13 @@ class locatedb(object):
         return buffer_
 
     @classmethod
-    def _class_count(cls, name, ignore_case=False):
+    def _class_count(cls, name, ignore_case=False, db_path=None):
         args = ['locate', '-c', name]
         if ignore_case:
             args.extend(['-i'])
-        return _docommand(args)
+        if db_path:
+            args.extend(['-d', db_path])
+        return float(_docommand(args))
 
     def _instance_count(self, name, ignore_case=False):
         args = ['locate', '-c', name]
@@ -191,8 +193,11 @@ class locatedb(object):
     find = BiContextual("find")
 
     @classmethod
-    def _class_statistics(cls):
-        return FileSystem(_docommand(['locate', '-S']))
+    def _class_statistics(cls, db_path=None):
+        args = ['locate', '-S']
+        if db_path:
+            args.extend(['-d', db_path])
+        return FileSystem(_docommand(args))
 
     def _instance_statistics(self):
         args = ['locate', '-S']
