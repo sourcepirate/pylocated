@@ -170,23 +170,27 @@ class locatedb(object):
     count = BiContextual("count")
 
     @classmethod
-    def _class_find(cls, name, ignore_case=False, limit=None, regex=None):
+    def _class_find(cls, name, ignore_case=False,
+                    limit=None, regex=None, db_path=None):
 
         args = ['locate', name]
         if ignore_case:
             args.extend(['-i'])
-        if limit and str(limit).isnumeric():
+        if limit and _isnumeric(limit):
             args.extend(['-l', str(limit)])
+        if db_path:
+            args.extend(['-d', db_path])
 
         process_pipe = _docommand(args)
         return cls._get_buffer_from_pipe(process_pipe, regex)
 
-    def _instance_find(self, name, ignore_case=False, limit=None, regex=None):
+    def _instance_find(self, name, ignore_case=False, limit=None,
+                       regex=None):
         args = ['locate', name]
 
         if ignore_case:
             args.extend(['-i'])
-        if limit and str(limit).isnumeric():
+        if limit and _isnumeric(limit):
             args.extend(['-l', str(limit)])
         if self.db_path:
             args.extend(['-d', self.db_path])
@@ -214,7 +218,8 @@ class locatedb(object):
     @classmethod
     def version(cls):
         """ Return locate version """
-        return _docommand(['locate', '-V']).split("\n")[0].split()[1]
+        return _docommand(
+            ['locate', '-V']).split("\n")[0].split()[1]
 
 
 # Expose updatedb function
