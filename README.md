@@ -1,15 +1,15 @@
-##PyLocated
+## PyLocated
 
 A Locatedb interface for python
 
-##Installing
+## Installing
 
 ```
   pip install pylocated
 
 ```
 
-##Usage
+## Usage
 
 ```python
 from pylocated import locatedb
@@ -29,25 +29,25 @@ print buffers.getvalue()
 
 ```
 
-##API
+## API
 
-###locatedb.find or instance.find(): [name, limit=None, ignore_case=False, regex=None]
+### locatedb.find or instance.find(): [name, limit=None, ignore_case=False, regex=None]
    used to find the particular files in system.
    where pattern inside regex find the matches of path.
    
-###locatedb.count or instance.count: [name]
+### locatedb.count or instance.count: [name]
    used find the number of occurences for that particular word.
    equivalent to locate -c
 
-###locatedb.statistics or instance.statistics : [name]
+### locatedb.statistics or instance.statistics : [name]
    used to give the disk statistics
    equivalent to locate -S
    
-###locatedb.version: 
+### locatedb.version: 
    return the version of locatedb you are using.
    
    
-##License:
+## License:
   <b>MIT</b>
   &copy; 2015 plasmashadow aka sourcepirate
   plasmashadowx@gmail.com
