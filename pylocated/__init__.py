@@ -64,36 +64,32 @@ class FileSystem(object):
     @property
     def directories(self):
         """ Return directories found """
-        dir_str = self.parsed[1].strip().split()
-        return _toint(dir_str[0].replace(",", ""))
+        return float(self.parsed[1].strip().split()[0])
 
     @property
     def files(self):
         """ Return files found """
-        file_str = self.parsed[2].strip().split()
-        return _toint(file_str[0].replace(",", ""))
+        return float(self.parsed[2].strip().split()[0])
 
     @property
     def totalspace(self):
         """ Return total space """
-        total_str = self.parsed[3].strip().split()
-        return _toint(total_str[0].replace(",", ""))
+        return float(self.parsed[3].strip().split()[0])
 
     @property
     def usedspace(self):
         """ Return used space """
-        total_str = self.parsed[4].strip().split()
-        return _toint(total_str[0].replace(",", ""))
+        return float(self.parsed[4].strip().split()[0])
 
     @property
     def db_path(self):
         """ Return current locate db path """
-        return self.parsed[0].split()[1]
+        return self.parsed[0].split()[-1][:-1]
 
 
 def _docommand(args):
     try:
-        stream = Popen(args, stdout=pipe, stderr=pipe)
+        stream = Popen(args, stdout=pipe, stderr=pipe, env={'LC_ALL': 'C'})
         out, err = stream.communicate()
         if err:
             raise PyLocatedException(err)
