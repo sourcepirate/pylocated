@@ -165,7 +165,7 @@ class locatedb(object):
             args.extend(['-i'])
         if self.db_path:
             args.extend(['-d', self.db_path])
-        return _docommand(args)
+        return float(_docommand(args))
 
     count = BiContextual("count")
 
