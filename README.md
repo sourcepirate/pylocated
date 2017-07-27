@@ -1,5 +1,7 @@
 ## PyLocated
 
+[![Build Status](https://travis-ci.org/sourcepirate/pylocated.svg?branch=master)](https://travis-ci.org/sourcepirate/pylocated)
+
 A Locatedb interface for python
 
 ## Installing
