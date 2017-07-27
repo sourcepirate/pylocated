@@ -1,78 +1,62 @@
-import unittest, os, shutil
+import unittest
+import os
 import logging
-import getpass
-
-from pylocated import locatedb, PyLocatedException
+from pylocated import locatedb
 
 logging.basicConfig(level=logging.INFO)
 
 log = logging.getLogger(__name__)
 
+ROOT = os.path.dirname(os.path.abspath(__file__))
+PATH = os.path.join(ROOT, 'locatedir')
+
 
 class TestLocate(unittest.TestCase):
+    def setUp(self):
+        locatedb.updatedb(db_path='/tmp/fixed.db', path=PATH)
 
+    def tearDown(self):
+        import os
+        os.unlink('/tmp/fixed.db')
 
     def test_version(self):
         version = locatedb.version()
-        log.info(version)
         self.assertIsNotNone(version)
+        self.assertTrue(float(version))
+
+    def _assert_is_in(self, what, where):
+        path = where.getvalue().split("\n")
+        self.assertTrue(len(path) == 1)
+        path = path[0]
+        expected = os.path.join(PATH, what)
+        self.assertEqual(path, expected)
 
     def test_find(self):
-        buffer = locatedb.find('fstab', ignore_case=False, limit=2)
-        str_list = buffer.getvalue().split("\n")
-        log.info(str_list)
-        self.assertEqual(len(str_list), 2)
+        self._assert_is_in('foobar', locatedb(db_path='/tmp/fixed.db').find(
+            'foobar', ignore_case=False, limit=2))
 
     def test_find_regex(self):
-        buffer = locatedb.find('py', ignore_case=False, regex='.*\.py')
-        str_list = buffer.getvalue().split("\n")
-        self.assertIsNotNone(str_list)
+        self._assert_is_in(
+            'barstuff.py',
+            locatedb.find('py', ignore_case=False, regex=r'.*.py$',
+                          db_path='/tmp/fixed.db'))
 
     def test_statistics(self):
-        file_obj = locatedb.statistics()
+        file_obj = locatedb.statistics(db_path='/tmp/fixed.db')
         log.info(file_obj.__dict__)
-        self.assertIsNotNone(file_obj.directories)
-        self.assertIsNotNone(file_obj.files)
-        self.assertIsNotNone(file_obj.totalspace)
-        self.assertIsNotNone(file_obj.usedspace)
+        self.assertEqual(file_obj.directories, 1)
+        self.assertEqual(file_obj.files, 3)
+        self.assertTrue(float(file_obj.totalspace) > 100)
+        self.assertTrue(float(file_obj.usedspace) > 100)
 
     def test_instance_find(self):
-        locate_obj = locatedb()
-        buffer = locate_obj.find('fstab', ignore_case=False, limit=2)
-        str_list = buffer.getvalue().split("\n")
-        log.info(str_list)
-        self.assertEqual(len(str_list), 2)
+        self._assert_is_in(
+            'foobar',
+            locatedb(db_path="/tmp/fixed.db").find('foobar'))
 
     def test_instance_count(self):
-        locate_obj = locatedb()
-        buffer = locate_obj.count('fstab')
-        log.info(buffer)
-        self.assertIsNotNone(buffer)
+        self.assertEqual(locatedb(db_path='/tmp/fixed.db').count('foobar'), 1)
 
-class TestLocateWithKwArgs(unittest.TestCase):
-
-    def __init__(self, *args, **kwargs):
-        super(TestLocateWithKwArgs, self).__init__(*args, **kwargs)
-        self.test_file = '/tmp/db123.db'
-
-    def setUp(self):
-        if os.path.isfile(self.test_file):
-            os.unlink(self.test_file)
-        elif os.path.isdir(self.test_file):
-            shutil.rmtree(self.test_file)
-        else:
-            pass
-
-    def tearDown(self):
-        if os.path.isfile(self.test_file):
-            os.unlink(self.test_file)
-
-    def create_obj(self):
-        locate_obj = locatedb(db_path=self.test_file)
-
-    def test_instance_with_dbpath(self):
-        if getpass.getuser() == 'root':
-            self.create_obj()
-            self.assertEqual(os.path.isfile(self.test_file), True, "instance triggered updatedb")
-        else:
-            self.assertRaises(PyLocatedException, self.create_obj)
+    def test_instance_update(self):
+        locatedb.updatedb(db_path='/tmp/testdb', path=PATH)
+        self.assertTrue(os.path.isfile('/tmp/testdb'))

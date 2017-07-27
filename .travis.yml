@@ -1,10 +1,11 @@
 language: python
 python:
 - '2.7'
+- '3.4'
+- '3.5'
 
 install:
 - sudo apt-get install locate
-- pip install six
-
-script: python setup.py test
+- pip install tox
+script: tox
 sudo: required
